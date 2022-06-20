@@ -83,6 +83,11 @@ services:
       interval: 5s
       retries: 5
     restart: on-failure
+  adminer:
+    image: adminer
+    restart: on-failure
+    ports:
+      - 8081:8080
 
   redis:
     image: redis:latest
