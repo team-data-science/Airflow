@@ -11,7 +11,8 @@ from pandas import DataFrame, json_normalize
 import datetime as dt
 import psycopg2 
 
-
+# import custom transformer for API data
+from transformer import transform_weatherAPI
 
 
 # [START instantiate_dag]
@@ -56,28 +57,17 @@ def ETLWeatherPostgresAndPrint():
     @task()
     def transform(weather_json: json):
         """
-        #### Transform task
-        A simple Transform task which takes in the collection of order data and
-        computes the total order value.
+        A simple Transform task which takes in the API data and only extracts the location, wind,
+        the temperature and time.
         """
-        #weather_json = json.loads(weather_data_dict)
+        weather_str = json.dumps(weather_json)
+        transformed_str = transform_weatherAPI(weather_str)
 
-        normalized = json_normalize(weather_json)
-
-        # timestamp format with +2.00 is very important otherwise it will not get shown on the board API returns local board
-        normalized['timestamp'] = normalized['location.localtime_epoch'].apply(lambda s : dt.datetime.fromtimestamp(s).strftime('%Y-%m-%dT%H:%M:%S+02:00'))
-        normalized.rename(columns={'location.name': 'location', 
-        'location.region': 'region',
-        'current.temp_c': 'temp_c',
-        'current.wind_kph': 'wind_kph'
-        }, inplace=True)     
-
-
-        ex_df = normalized.filter(['location','temp_c','wind_kph','timestamp'])      
-        ex_dict = ex_df.to_dict('records')
-        print(ex_dict[0]["location"])
-        return ex_dict
-
+        # turn string into dictionary
+        ex_dict = json.loads(transformed_str)
+        
+        #return ex_dict
+        return ex_dict     
 
     # LOAD: Save the data into Postgres database
     @task()
