@@ -33,6 +33,7 @@ import requests
 import pandas as pd
 from pandas import DataFrame, json_normalize
 import datetime as dt
+import psycopg2 
 
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
@@ -108,30 +109,63 @@ def lde_weather_api_posgres():
 
     # [START load]
     @task()
-    def load(ex_dict: dict):
+    def load(weather_data: dict):
         """
         #### Load task
         A simple Load task which takes in the result of the Transform task and
         instead of saving it to end user review, just prints it out.
         """
-        print(ex_dict)
 
+        try:
+            connection = psycopg2.connect(user="airflow",
+                                        password="airflow",
+                                        host="postgres",
+                                        port="5432",
+                                        database="WeatherData")
+            cursor = connection.cursor()
+
+            postgres_insert_query = """INSERT INTO temperature (location, temp_c, wind_kph, time) VALUES ( %s , %s, %s, %s);"""
+            record_to_insert = (weather_data[0]["location"], weather_data[0]["temp_c"], weather_data[0]["wind_kph"], weather_data[0]["timestamp"])
+            cursor.execute(postgres_insert_query, record_to_insert)
+
+            connection.commit()
+            count = cursor.rowcount
+            print(count, "Record inserted successfully into table")
+
+        except (Exception, psycopg2.Error) as error:
+            
+            print("Failed to insert record into mobile table", error)
+            
+            if connection:
+                cursor.close()
+                connection.close()
+                print("PostgreSQL connection is closed")
+            
+            raise Exception(error)
+
+        finally:
+            # closing database connection.
+            if connection:
+                cursor.close()
+                connection.close()
+                print("PostgreSQL connection is closed")
     # [END load]
 
 
     # [START main_flow]
     weather_data = extract()
     weather_summary = transform(weather_data)
-
+    ex_data = load(weather_summary)
     #weather_summary[0]["location"]
-    insert_data = PostgresOperator(
+    '''insert_data = PostgresOperator(
         task_id="insert_request_data",
         postgres_conn_id="postgres_default",
         parameters={'location': weather_summary[0]["location"]},
         sql="""INSERT INTO temperature (location, temp_c, wind_kph, time) VALUES ( %(location)s , 20.5, 2.1, '2022-06-15 00:01:00');""",
     )
+    '''
     #insert_data.set_upstream(weather_summary)
-    weather_summary >> insert_data
+    
     
     # [END main_flow]
 
