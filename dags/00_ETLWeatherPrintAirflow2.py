@@ -43,7 +43,6 @@ def my_transform(**kwargs):
     task_instance = kwargs['ti']
     api_data = task_instance.xcom_pull(key='api_result', task_ids='extract')
     
-   
     ex_json = transform_weatherAPI(api_data)
     
     task_instance.xcom_push(key='transformed_weather', value=ex_json)

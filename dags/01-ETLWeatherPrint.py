@@ -71,20 +71,16 @@ def ETLWeatherPrint():
     # LOAD: Just print the data received from the API
     @task()
     def load(ex_dict: dict):
-        """
-        #### Load task
-        A simple Load task which takes in the result of the Transform task and
-        instead of saving it to end user review, just prints it out.
-        """
+
         print(ex_dict)
 
-    # [END load]
+
 
     # Define the main flow
     weather_data = extract()
     weather_summary = transform(weather_data)
     load(weather_summary)
-    # [END main_flow]
+
 
 
 # Invocate the DAG
