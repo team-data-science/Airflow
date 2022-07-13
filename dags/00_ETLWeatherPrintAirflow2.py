@@ -1,22 +1,17 @@
 
 
 # imports important for Airflow
-import pendulum
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
 # Import Modules for code
 import json
 import requests
-import pandas as pd
-from pandas import DataFrame, json_normalize
 import datetime as dt
-import psycopg2 
 import logging
 
 # import custom transformer for API data
 from transformer import transform_weatherAPI
-
 
 def my_extract(**kwargs):
     # TODO: Fetch the data from an API and store it where it can be
@@ -53,13 +48,12 @@ def my_load(**kwargs):
     
     task_instance = kwargs['ti']
     weather_json = task_instance.xcom_pull(key='transformed_weather', task_ids='transform')
-    api_data = task_instance.xcom_pull(key='api_result', task_ids='my_extract')
     
     logger = logging.getLogger("airflow.task")
     logger.info(weather_json)
 
 
-with DAG('ETLWeatherPrintAirflow2', description='Airflow2.0 DAG', start_date=dt.datetime(2018, 11, 1), catchup=False,tags=['LearnDataEngineering']) as dag:
+with DAG('ETLWeatherPrintAirflow2', description='Airflow2.0 DAG', start_date=dt.datetime(2018, 11, 1),schedule_interval = "0 * * * *", catchup=False,tags=['LearnDataEngineering']) as dag:
     ext = PythonOperator(
         task_id='extract',
         python_callable=my_extract,

@@ -7,10 +7,6 @@ from airflow.decorators import dag, task
 # Import Modules for code
 import json
 import requests
-import pandas as pd
-from pandas import DataFrame, json_normalize
-import datetime as dt
-import psycopg2 
 
 # import custom transformer for API data
 from transformer import transform_weatherAPI

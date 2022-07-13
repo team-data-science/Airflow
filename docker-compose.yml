@@ -83,6 +83,7 @@ services:
       interval: 5s
       retries: 5
     restart: on-failure
+  
   adminer:
     image: adminer
     restart: on-failure
