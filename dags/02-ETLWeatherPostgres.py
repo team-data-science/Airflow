@@ -36,12 +36,9 @@ def ETLWeatherPostgres():
     # EXTRACT: Query the data from the Weather API
     @task()
     def extract():
-        """
-        #### Extract task
-        A simple Extract task to get data ready for the rest of the data
-        pipeline. In this case, getting data is simulated by reading from a
-        hardcoded JSON string.
-        """
+
+        # TODO: Change the API Key to your key!!
+
         payload = {'Key': '5a91e86eedc148059a390511211510', 'q': 'Berlin', 'aqi': 'no'}
         r = requests.get("http://api.weatherapi.com/v1/current.json", params=payload)
 
@@ -76,7 +73,7 @@ def ETLWeatherPostgres():
         """
         #### Load task
         A simple Load task which takes in the result of the Transform task and
-        instead of saving it to end user review, just prints it out.
+        writes it to the postgres database.
         """
 
         try:
